@@ -7,136 +7,139 @@ import offset.sim.Point;
 import offset.sim.movePair;
 
 public class Player extends offset.sim.Player {
-	int size = 32;
+	private int size = 32;
+	
 	public Player(Pair prin, int idin) {
 		super(prin, idin);
-		// TODO Auto-generated constructor stub
-	}
-
-	public void init() {
-
 	}
 	
-	public ArrayList<Point> giveValidPts(Pair pr, Point orig, Point[] grid) {
-		ArrayList<Point> valid = new ArrayList<Point>();
-		Point newPt = new Point();
-		for(int ordr = 0; ordr <=1; ordr++) {
-			for(int sgn1 = -1; sgn1 <=1; sgn1 += 2) {
-				for(int sgn2 = -1; sgn2 <=1; sgn2 += 2) {
-					// create new point
-					if(ordr == 0) {
-						newPt.x = orig.x + sgn1*pr.p;
-						newPt.y = orig.y + sgn2*pr.q;
-					} else {
-						newPt.x = orig.x + sgn1*pr.q;
-						newPt.y = orig.y + sgn2*pr.p;
-					}
-					// check if valid
-					if(newPt.x >= 0 && newPt.x < size && newPt.y >= 0 && newPt.y < size 
-							// why is this one not working...?
-							&& grid[newPt.x*size+newPt.y].value == grid[orig.x*size+orig.y].value
-							&& grid[orig.x*size+orig.y].value > 0) {
-						// add to list
-						System.out.println("ADDED:");
-						System.out.println(orig.x + ", "+  orig.y);
-						System.out.println(newPt.x + ", " + newPt.y);
-						valid.add(newPt);
-					}
-				}
-			}
+	///////////////////////// PRIVATE METHODS /////////////////////////
+	// Light wrapper class for the board to make it easier to refer to specific locations
+	private class Board {
+		Point grid[];
+		
+		Board() {}
+		
+		Board(Point grid[]) {
+			this.grid = grid;
 		}
-		return valid;	
+		
+		public void update(Point grid[]) {
+			this.grid = grid;
+		}
+		
+		public Point get(int x, int y) {
+			return grid[x*size + y];
+		}
+		
+		public Point get(Point p) {
+			return this.get(p.x, p.y);
+		}
 	}
-
+	
+	///////////////////////// PRIVATE VARIABLES /////////////////////////
+	Board board;
+	boolean didInit = false;
+	
+	///////////////////////// SETUP /////////////////////////
+	public void init() {
+		board = new Board();
+	}
+	
 	public movePair move(Point[] grid, Pair pr, Pair pr0, ArrayList<ArrayList> history) {
+		if (!didInit)
+			init();
+		
+		// Update the board with the latest grid.  Optimize later if need be based on history
+		board.update(grid);
+		
 		movePair movepr = new movePair();
-		// Manhattan distance from corners
-		for(int d = 0; d < size; d++) {
-			for(int cellNum = 0; cellNum < d; cellNum++) {
-				int x = d-cellNum;
-				int y = cellNum;
-				ArrayList<Point> valid = giveValidPts(pr, new Point(x, y, 1, -1), grid);
-				// there is more than 1 valid point for that point...
-				if(!valid.isEmpty()) {
-					movepr.move = true;
-					movepr.src = grid[valid.get(0).x * size + valid.get(0).y];
-					movepr.target = grid[x * size + y];
-					System.out.println("CHOSEN:");
-					System.out.println(movepr.src.x + ", "+  movepr.src.y);
-					System.out.println(movepr.target.x + ", " + movepr.target.y);
-					return movepr;
+		
+		// Choose move based on shortest Manhattan distance from the corners
+		for (int d = 0; d < size; d++) {
+			for (int n = 0; n <= d; n++) {
+				int x = d - n;
+				int y = n;
+				
+				for (int c = 0; c < 4; c++) {
+					Point p = new Point();
+					p.x = x;
+					p.y = y;
+					
+					ArrayList<Point> validMoves = validMovesFrom(p);
+					
+					// Return any valid moves from that point
+					if (!validMoves.isEmpty()) {
+						movepr.move = true;
+						movepr.src = board.get(validMoves.get(0));
+						movepr.target = board.get(p);
+						
+						
+						return movepr;
+					}
+					
+					// Rotate to the next corner
+					int temp = y;
+					y = x;
+					x = size - temp - 1;
 				}
 			}
-			
 		}
-//		for (int i = 0; i < size; i++) {
-//			for (int j = 0; j < size; j++) {
-//				for (int i_pr=0; i_pr<size; i_pr++) {
-//					for (int j_pr=0; j_pr <size; j_pr++) {
-//						movepr.move = false;
-//						movepr.src = grid[i*size+j];
-//						movepr.target = grid[i_pr*size+j_pr];
-//						if (validateMove(movepr, pr)) {
-//							movepr.move = true;
-//							return movepr;
-//						}
-//					}
-//				}
-//			/*	if (i + pr.x >= 0 && i + pr.x < size) {
-//					if (j + pr.y >= 0 && j + pr.y < size) {
-//						
-//					}
-//					if (j - pr.y >= 0 && j - pr.y < size) {
-//
-//					}
-//				}
-//				if (i - pr.x >= 0 && i - pr.x < size) {
-//					if (j + pr.y >= 0 && j + pr.y < size) {
-//
-//					}
-//					if (j - pr.y >= 0 && j - pr.y < size) {
-//
-//					}
-//				}
-//				if (i + pr.y >= 0 && i + pr.y < size) {
-//					if (j + pr.x >= 0 && j + pr.x < size) {
-//
-//					}
-//					if (j - pr.x >= 0 && j - pr.x < size) {
-//
-//					}
-//				}
-//				if (i - pr.y >= 0 && i - pr.y < size) {
-//					if (j + pr.x >= 0 && j + pr.x < size) {
-//
-//					}
-//					if (j - pr.x >= 0 && j - pr.x < size) {
-//
-//					}
-//				}
-//*/
-//			}
-//		}
+		
+		// Could not find a valid move
+		movepr.move = false;
 		return movepr;
 	}
 
+	///////////////////////// HELPER METHODS /////////////////////////
+	
+	// Given a point, returns an ArrayList of points that can be combined with it
+	// A point can validly be combined if it is at the proper offset for the player and has the same value
+	private ArrayList<Point> validMovesFrom(Point from) {
+		ArrayList<Point> validMoves = new ArrayList<Point>();
+		int p;
+		int q;
+		
+		if (from.value == 0)
+			return validMoves;
+			
+		for(int i = -1; i <= 1; i += 2) {
+			for(int j = -1; j <= 1; j += 2) {
+				for(int k = 0; k <= 1; k++) {
+					Point to = new Point();
+					p = k == 0 ? pr.p : pr.q;
+					q = k == 0 ? pr.q : pr.p;
+					
+					to.x = from.x + p*i;
+					to.y = from.y + q*j;
+					if (isMoveValid(from, to))
+						validMoves.add(to);
+				}				
+			}
+		}
 
-boolean validateMove(movePair movepr, Pair pr) {
-    	
-    	Point src = movepr.src;
-    	Point target = movepr.target;
-    	boolean rightposition = false;
-    	if (Math.abs(target.x-src.x)==Math.abs(pr.p) && Math.abs(target.y-src.y)==Math.abs(pr.q)) {
-    		rightposition = true;
-    	}
-    	//if (Math.abs(target.x-src.x)==Math.abs(pr.y) && Math.abs(target.y-src.y)==Math.abs(pr.x)) {
-    		//rightposition = true;
-    	//}
-        if (rightposition  && src.value == target.value && src.value >0) {
-        	return true;
-        }
-        else {
-        	return false;
-        }
-    }
+		return validMoves;
+	}
+	
+	private boolean isMoveValid(Point src, Point target) {
+		return (isInBounds(src) && isInBounds(target) &&
+				((Math.abs(src.x - target.x) == pr.p && Math.abs(src.y - target.y) == pr.q) || (Math.abs(src.x - target.x) == pr.q && Math.abs(src.y - target.y) == pr.p)) &&
+				board.get(src).value == board.get(target).value && board.get(src).value != 0);
+	}
+	
+	private boolean isMoveValid(movePair mp) {
+		return isMoveValid(mp.src, mp.target);
+	}
+	
+	private boolean isInBounds(Point point) {
+		return (point.x >= 0 && point.x < size && point.y >= 0 && point.y < size);
+	}
+	
+	private int distBetween(Point p1, Point p2) {
+		return (Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y));
+	}
+	
+	private double distFromCenter(Point p1) {
+		return (Math.abs(p1.x - (double) size/2) + Math.abs(p1.y - (double) size/2));
+	}
 }
