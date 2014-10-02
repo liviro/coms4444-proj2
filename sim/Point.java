@@ -19,10 +19,13 @@ public class Point {
         this.change = false;
     }
 
-  /*  public Point(Point o) {
+    public Point(Point o) {
         this.x = o.x;
         this.y = o.y;
-    }*/
+        this.value = o.value;
+        this.owner = o.owner;
+        this.change = o.change;
+    }
 
   /*  public boolean equals(Point o) {
         return o.x == x && o.y == y;

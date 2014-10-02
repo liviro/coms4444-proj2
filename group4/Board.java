@@ -7,7 +7,7 @@ import offset.sim.Point;
 import offset.sim.movePair;
 
 public class Board {
-	Point grid[];
+	ArrayList<Point> grid;
 	int size;
 	
 	// CONSTRUCTORS
@@ -17,28 +17,48 @@ public class Board {
 	
 	Board(int size, Point grid[]) {
 		this.size = size;
-		this.grid = grid.clone();
+		
+		this.grid = new ArrayList<Point>();
+		this.setGrid(grid);
 	}
 	
 	Board(Board board) {
 		this.size = board.size;
-		this.grid = grid.clone();
+		
+		this.grid = new ArrayList<Point>();
+		for (int i = 0; i < board.grid.size(); i++)
+			this.grid.add(new Point(board.grid.get(i)));
 	}
 	
 	// PRIVATE METHODS
 	
 	
-	// PUBLIC METHODS
+	// PUBLIC METHODS	
 	public void setGrid(Point grid[]) {
-		this.grid = grid;
+		for (int i = 0; i < grid.length; i++)
+			this.grid.add(new Point(grid[i]));
 	}
 	
-	public void processMove(movePair mp) {
-		// to be completed
+	// Updates the grid based on a move performed by a player
+	// Assumes that the move is valid
+	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int player) {
+		grid.get(xSrc*size + ySrc).value = 0;
+		grid.get(xSrc*size + ySrc).owner = -1;
+		grid.get(xTarget*size + yTarget).value *= 2;
+		grid.get(xTarget*size + yTarget).owner = player;
+	}
+	
+	public void processMove(Point src, Point target, int player) {
+		processMove(src.x, src.y, target.x, target.y, player);
+	}
+	
+	public void processMove(movePair mp, int player) {
+		if (mp.move)
+			processMove(mp.src, mp.target, player);
 	}
 	
 	public Point get(int x, int y) {
-		return grid[x*size + y];
+		return grid.get(x*size + y);
 	}
 	
 	// Given a point and an offset pair, returns an ArrayList of neighbors of that point that are on the board
@@ -53,13 +73,8 @@ public class Board {
 
 			for(int i = -1; i <= 1; i += 2) {
 				for(int j = -1; j <= 1; j += 2) {
-					Point n = new Point();
-					
-					n.x = x + p*i;
-					n.y = y + q*j;
-					
-					if (isInBounds(n))
-						neighbors.add(n);
+					if (isInBounds(x + p*i, y + q*j))
+						neighbors.add(get(x + p*i, y + q*j));
 				}
 			}
 		}
@@ -77,7 +92,7 @@ public class Board {
 		
 		for (Point p : neighbors) {
 			if (isMoveValid(p.x, p.y, x, y, pr))
-				validMoves.add(p);
+				validMoves.add(new Point(p));
 		}
 		
 		return validMoves;

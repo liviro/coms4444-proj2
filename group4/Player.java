@@ -19,19 +19,28 @@ public class Player extends offset.sim.Player {
 	
 	///////////////////////// PRIVATE VARIABLES /////////////////////////
 	Board board;
-	boolean didInit = false;
+	boolean didSetup = false;
 	
 	///////////////////////// SETUP /////////////////////////
 	public void init() {
-		board = new Board(size);
+		
 	}
 	
 	public movePair move(Point[] grid, Pair pr, Pair pr0, ArrayList<ArrayList> history) {
-		if (!didInit)
-			init();
+		if (!didSetup) {
+			board = new Board(size, grid);
+			didSetup = true;
+		}
 		
-		// Update the board with the latest grid.  Optimize later if need be based on history
-		board.setGrid(grid);
+		// An element in the history ArrayList is itself an ArrayList where the first element is the player id and the second is a movePair (each of which must be cast)
+		// Keep our board up to date by processing the most recent moves made by opponent (faster than copying the whole grid again)
+		int i = history.size() - 1;
+		while (i >= 0 && (int) history.get(i).get(0) != id) {
+			int player = (int) history.get(i).get(0);
+			movePair mp = (movePair) history.get(i).get(1);
+			board.processMove(mp, player);
+			i--;
+		}
 		
 		movePair movepr = new movePair();
 		
@@ -47,9 +56,9 @@ public class Player extends offset.sim.Player {
 					// Return any valid moves from that point
 					if (!validMoves.isEmpty()) {
 						movepr.move = true;
-						movepr.src = board.get(validMoves.get(0).x, validMoves.get(0).y);
-						movepr.target = board.get(x, y);
-						
+						movepr.src = grid[validMoves.get(0).x*size + validMoves.get(0).y];
+						movepr.target = grid[x*size + y];
+						board.processMove(movepr, id);
 						return movepr;
 					}
 					
@@ -63,6 +72,7 @@ public class Player extends offset.sim.Player {
 		
 		// Could not find a valid move
 		movepr.move = false;
+		board.processMove(movepr, id);
 		return movepr;
 	}
 }
