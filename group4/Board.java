@@ -8,6 +8,7 @@ import offset.sim.movePair;
 
 public class Board {
 	ArrayList<Point> grid;
+	Point[] gridNew;
 	int size;
 	
 	// CONSTRUCTORS
@@ -31,6 +32,24 @@ public class Board {
 	}
 	
 	// PRIVATE METHODS
+	private int encodePoint(Point pt) {
+		int enc = pt.x * (int) Math.pow(10, 8) 
+				+ pt.y * (int) Math.pow(10, 6)
+				+ pt.value * (int) Math.pow(10, 2)
+				+ pt.owner * (int) Math.pow(10, 1)
+				+ (pt.change ? 1 : 0);
+		return enc;
+	}
+	
+	private Point decodePoint(int enc) {
+		Point dec = new Point();
+		dec.x = enc / (int) Math.pow(10, 8);
+		dec.y = (enc % (int) Math.pow(10, 8)) / (int) Math.pow(10, 6);
+		dec.value = (enc % (int) Math.pow(10, 6)) / (int) Math.pow(10, 2);
+		dec.owner = (enc % (int) Math.pow(10, 2)) / (int) Math.pow(10, 1);
+		dec.change = (enc % 10 == 1 ? true : false);
+		return dec;
+	}
 	
 	
 	// PUBLIC METHODS	
