@@ -17,7 +17,12 @@ public class Board {
 	
 	Board(int size, Point grid[]) {
 		this.size = size;
-		this.grid = grid;
+		this.grid = grid.clone();
+	}
+	
+	Board(Board board) {
+		this.size = board.size;
+		this.grid = grid.clone();
 	}
 	
 	// PRIVATE METHODS
