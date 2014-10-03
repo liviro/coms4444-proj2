@@ -8,27 +8,44 @@ import offset.sim.movePair;
 
 public class Board {
 	ArrayList<Point> grid;
-	Point[] gridNew;
+	int[] gridNew;
 	int size;
 	
 	// CONSTRUCTORS
 	Board(int size) {
 		this.size = size;
+		this.gridNew = new int[size];
 	}
 	
 	Board(int size, Point grid[]) {
 		this.size = size;
 		
+		// old
 		this.grid = new ArrayList<Point>();
 		this.setGrid(grid);
+		
+		// new
+		this.gridNew = new int[size];
+		for(int i = 0; i < size; i++) {
+			gridNew[i] = encodePoint(grid[i]);
+		}
 	}
 	
 	Board(Board board) {
 		this.size = board.size;
 		
+		// old
 		this.grid = new ArrayList<Point>();
-		for (int i = 0; i < board.grid.size(); i++)
+		for (int i = 0; i < board.grid.size(); i++) {
 			this.grid.add(new Point(board.grid.get(i)));
+		}
+		
+		// new
+		this.gridNew = new int[this.size];
+		for (int i = 0; i < board.grid.size(); i++) {
+			this.gridNew[i] = encodePoint(board.grid.get(i));
+		}
+		
 	}
 	
 	// PRIVATE METHODS
@@ -51,8 +68,20 @@ public class Board {
 		return dec;
 	}
 	
+	private ArrayList<Point> getBoard() {
+		ArrayList<Point> decoded = new ArrayList<Point>();
+		for(int i = 0; i < gridNew.length; i++) {
+			decoded.add( decodePoint(gridNew[i]) );
+		}
+		return decoded;
+	}
 	
-	// PUBLIC METHODS	
+	
+	// PUBLIC METHODS
+	public ArrayList<Point> get() {
+		return getBoard();
+	}
+	
 	public void setGrid(Point grid[]) {
 		for (int i = 0; i < grid.length; i++)
 			this.grid.add(new Point(grid[i]));
