@@ -10,12 +10,9 @@ import offset.group4.Move;
 public class Board {
 	ArrayList<Point> grid;
 	int size;
+	int[] scores = new int[2];
 	
 	// CONSTRUCTORS
-	Board(int size) {
-		this.size = size;
-	}
-	
 	Board(int size, Point grid[]) {
 		this.size = size;
 		
@@ -25,6 +22,8 @@ public class Board {
 	
 	Board(Board board) {
 		this.size = board.size;
+		this.scores[0] = board.scores[0];
+		this.scores[1] = board.scores[1];
 		
 		this.grid = new ArrayList<Point>();
 		for (int i = 0; i < board.grid.size(); i++)
@@ -36,17 +35,37 @@ public class Board {
 	
 	// PUBLIC METHODS	
 	public void setGrid(Point grid[]) {
-		for (int i = 0; i < grid.length; i++)
+		this.scores[0] = 0;
+		this.scores[1] = 0;
+		
+		for (int i = 0; i < grid.length; i++) {
 			this.grid.add(new Point(grid[i]));
+			
+			if (grid[i].owner >= 0)
+				this.scores[grid[i].owner] += grid[i].value; 
+		}
 	}
 	
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int playerId) {
-		grid.get(xSrc*size + ySrc).value = 0;
-		grid.get(xSrc*size + ySrc).owner = -1;
-		grid.get(xTarget*size + yTarget).value *= 2;
-		grid.get(xTarget*size + yTarget).owner = playerId;
+		Point src = grid.get(xSrc*size + ySrc);
+	
+		if (src.owner >= 0)
+			scores[src.owner] -= src.value;
+		
+		src.value = 0;
+		src.owner = -1;
+
+		Point target = grid.get(xTarget*size + yTarget);
+		
+		if (target.owner >= 0)
+			scores[target.owner] -= target.value;
+
+		target.value *= 2;
+		target.owner = playerId;
+		
+		scores[playerId] += target.value;
 	}
 	
 	public void processMove(Coord src, Coord target, int player) {
