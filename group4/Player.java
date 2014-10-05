@@ -27,7 +27,33 @@ public class Player extends offset.sim.Player {
 		
 	}
 	
-	///////////////////////// RECURSIVE MOVE SEARCH /////////////////////////
+	///////////////////////// STRATEGY: CORNERS /////////////////////////
+	// Choose move based on shortest Manhattan distance from the corners
+	private Move cornerStrategy() {
+		for (int d = 0; d < size; d++) {
+			for (int n = 0; n <= d; n++) {
+				int x = d - n;
+				int y = n;
+				
+				for (int c = 0; c < 4; c++) {					
+					ArrayList<Coord> validMoves = board.validMovesFrom(x, y, pr);
+					
+					// Return any valid moves from that point
+					if (!validMoves.isEmpty())
+						return new Move(validMoves.get(0).x, validMoves.get(0).y, x, y, id);
+					
+					// Rotate to the next corner
+					int temp = y;
+					y = x;
+					x = size - temp - 1;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	///////////////////////// STRATEGY: RECURSIVE MOVE SEARCH /////////////////////////
 	// Returns a shortest list of moves such that, after the moves, the point at coordinate c has value value
 	private ArrayList<Move> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId) {
 		Point p = board.getPoint(c);
@@ -97,12 +123,14 @@ public class Player extends offset.sim.Player {
 	
 	///////////////////////// IMPLEMENT ABSTRACT CLASS MOVE METHOD /////////////////////////	
 	public movePair move(Point[] grid, Pair pr, Pair pr0, ArrayList<ArrayList> history) {
+		// Setup our board class if this is the first time we have been called
 		if (!didSetup) {
 			board = new Board(size, grid);
 			didSetup = true;
 		}
+				
+		// Keep our board up to date by processing the most recent moves made by opponent (probably faster than copying the whole grid again)
 		// An element in the history ArrayList is itself an ArrayList where the first element is the player id and the second is a movePair (each of which must be cast)
-		// Keep our board up to date by processing the most recent moves made by opponent (faster than copying the whole grid again)
 		int i = history.size() - 1;
 		while (i >= 0 && (int) history.get(i).get(0) != id) {
 			int player = (int) history.get(i).get(0);
@@ -112,45 +140,21 @@ public class Player extends offset.sim.Player {
 			i--;
 		}
 		
-		
-		Board newBoard = new Board(board);
-		ArrayList<Move> moves = movesToDoubleValue(newBoard, new Coord(6,8), pr, id);
-		
-		System.out.printf("%s\n\n\n", moves);
-		
-		
-		
-		
+		// Call a strategy to actually determine the move to make
+		Move move = cornerStrategy();
+
+		// Transform the resulting move from our representation to the simulator representation
 		movePair movepr = new movePair();
-		
-		// Choose move based on shortest Manhattan distance from the corners
-		for (int d = 0; d < size; d++) {
-			for (int n = 0; n <= d; n++) {
-				int x = d - n;
-				int y = n;
-				
-				for (int c = 0; c < 4; c++) {					
-					ArrayList<Coord> validMoves = board.validMovesFrom(x, y, pr);
-					
-					// Return any valid moves from that point
-					if (!validMoves.isEmpty()) {
-						movepr.move = true;
-						movepr.src = grid[validMoves.get(0).x*size + validMoves.get(0).y];
-						movepr.target = grid[x*size + y];
-						board.processMove(new Move(movepr.src.x, movepr.src.y, movepr.target.x, movepr.target.y, id));
-						return movepr;
-					}
-					
-					// Rotate to the next corner
-					int temp = y;
-					y = x;
-					x = size - temp - 1;
-				}
-			}
+		if (move != null) {
+			board.processMove(move);
+			
+			movepr.move = true;
+			movepr.src = grid[move.src.x*size + move.src.y];
+			movepr.target = grid[move.target.x*size + move.target.y];
+			return movepr;
+		} else {
+			movepr.move = false;
+			return movepr;
 		}
-		
-		// Could not find a valid move
-		movepr.move = false;
-		return movepr;
 	}
 }
