@@ -76,20 +76,36 @@ public class Board {
 		return decoded;
 	}
 	
+	// get the index in grid* array from the x, y coords
+	private int getIndex(int x, int y) {
+		return x*size + y;
+	}
+	
 	
 	// PUBLIC METHODS
 	public ArrayList<Point> get() {
 		return getBoard();
 	}
 	
-	public void setGrid(Point grid[]) {
-		for (int i = 0; i < grid.length; i++)
-			this.grid.add(new Point(grid[i]));
+	public void setGrid(Point gridIn[]) {
+		// old
+		for (int i = 0; i < gridIn.length; i++) {
+			this.grid.add(new Point(gridIn[i]));
+		}
+		
+		// new
+		this.size = gridIn.length;
+		this.gridNew = new int[this.size];
+		for(int i = 0; i < this.size; i++) {
+			this.gridNew[i] = encodePoint(gridIn[i]);
+		}
+		
 	}
 	
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int player) {
+		// old
 		grid.get(xSrc*size + ySrc).value = 0;
 		grid.get(xSrc*size + ySrc).owner = -1;
 		grid.get(xTarget*size + yTarget).value *= 2;
