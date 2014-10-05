@@ -15,7 +15,7 @@ public class Board {
 	// CONSTRUCTORS
 	Board(int size) {
 		this.size = size;
-		this.gridNew = new int[size];
+		this.gridNew = new int[size*size];
 	}
 	
 	Board(int size, Point gridIn[]) {
@@ -26,8 +26,8 @@ public class Board {
 		this.setGrid(gridIn);
 		
 		// new
-		this.gridNew = new int[size];
-		for(int i = 0; i < size; i++) {
+		this.gridNew = new int[size*size];
+		for(int i = 0; i < size*size; i++) {
 			gridNew[i] = encodePoint(gridIn[i]);
 		}
 	}
@@ -42,7 +42,7 @@ public class Board {
 		}
 		
 		// new
-		this.gridNew = new int[this.size];
+		this.gridNew = new int[this.size*this.size];
 		for(int j = 0; j < board.gridNew.length; j++) {
 			this.gridNew[j] = board.gridNew[j];
 		}
@@ -51,24 +51,65 @@ public class Board {
 	
 	// PRIVATE METHODS
 	private int encodePoint(Point pt) {
+		// need to make owner++, since it can be -1.
 		int enc = pt.x * (int) Math.pow(10, 8) 
 				+ pt.y * (int) Math.pow(10, 6)
 				+ pt.value * (int) Math.pow(10, 2)
-				+ pt.owner * (int) Math.pow(10, 1)
+				+ (pt.owner + 1) * (int) Math.pow(10, 1)
 				+ (pt.change ? 1 : 0);
 		return enc;
 	}
 	
 	private Point decodePoint(int enc) {
 		Point dec = new Point();
-		dec.x = enc / (int) Math.pow(10, 8);
-		dec.y = (enc % (int) Math.pow(10, 8)) / (int) Math.pow(10, 6);
-		dec.value = (enc % (int) Math.pow(10, 6)) / (int) Math.pow(10, 2);
-		dec.owner = (enc % (int) Math.pow(10, 2)) / (int) Math.pow(10, 1);
-		dec.change = (enc % 10 == 1 ? true : false);
+		dec.x = getX(enc);
+		dec.y = getY(enc);
+		dec.value = getVal(enc);
+		dec.owner = getOwner(enc);
+		dec.change = getChange(enc);
 		return dec;
 	}
 	
+	private int getX(int enc) {
+		return enc / (int) Math.pow(10, 8);
+	}
+
+	private int getY(int enc) {
+		return (enc % (int) Math.pow(10, 8)) / (int) Math.pow(10, 6);
+	}
+
+	private int getVal(int enc) {
+		return (enc % (int) Math.pow(10, 6)) / (int) Math.pow(10, 2);
+	}
+
+	private int getOwner(int enc) {
+		return ((enc % (int) Math.pow(10, 2)) / (int) Math.pow(10, 1)) -1;
+	}
+
+	private boolean getChange(int enc) {
+		return (enc % 10 == 1 ? true : false);
+	}
+
+	private int setX(int enc, int xIn) {
+		return xIn * (int) Math.pow(10, 8) + (enc % (int) Math.pow(10, 8));
+	}
+
+	private int setY(int enc, int yIn) {
+		return (enc / (int) Math.pow(10, 8)) + yIn * (int) Math.pow(10, 6) + (enc % (int) Math.pow(10, 6));
+	}
+
+	private int setVal(int enc, int valIn) {
+		return (enc / (int) Math.pow(10, 6)) + valIn * (int) Math.pow(10, 2) + (enc % (int) Math.pow(10, 2));
+	}
+
+	private int setOwner(int enc, int ownerIn) {
+		return (enc / (int) Math.pow(10, 2)) + (ownerIn+1) * (int) Math.pow(10, 1) + (enc % (int) Math.pow(10, 1));
+	}
+
+	private int setChange(int enc, boolean changeIn) {
+		return (enc / (int) Math.pow(10, 1)) + (changeIn ? 1 : 0);
+	}
+
 	private ArrayList<Point> getBoard() {
 		ArrayList<Point> decoded = new ArrayList<Point>();
 		for(int i = 0; i < gridNew.length; i++) {
@@ -95,8 +136,8 @@ public class Board {
 		}
 		
 		// new
-		this.gridNew = new int[this.size];
-		for(int i = 0; i < this.size; i++) {
+		this.gridNew = new int[this.size*this.size];
+		for(int i = 0; i < this.size*this.size; i++) {
 			this.gridNew[i] = encodePoint(new Point(gridIn[i]));
 		}
 		
@@ -105,10 +146,16 @@ public class Board {
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int playerId) {
+		int srcIdx = getIndex(xSrc, ySrc);
+		int tgtIdx = getIndex(xTarget, yTarget);
+		
 		grid.get(xSrc*size + ySrc).value = 0;
 		grid.get(xSrc*size + ySrc).owner = -1;
+		gridNew[srcIdx] = setOwner(setVal(gridNew[srcIdx], 0), -1);
+
 		grid.get(xTarget*size + yTarget).value *= 2;
 		grid.get(xTarget*size + yTarget).owner = playerId;
+		gridNew[tgtIdx] = setOwner(setVal(gridNew[tgtIdx], 2*getVal(gridNew[tgtIdx])), playerId);
 	}
 	
 	public void processMove(Coord src, Coord target, int player) {
