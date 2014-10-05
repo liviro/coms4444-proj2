@@ -4,7 +4,6 @@ import java.util.*;
 
 import offset.sim.Pair;
 import offset.sim.Point;
-
 import offset.group4.Coord;
 import offset.group4.Move;
 
@@ -144,5 +143,17 @@ public class Board {
 	
 	public double distFromCenter(Coord c) {
 		return distFromCenter(c.x, c.y);
+	}
+	
+	@Override public String toString() {
+		String str = "";
+		for (int y = 0; y < size; y++) {
+			for (int x = 0; x < size; x++)
+				str = str + getPoint(x,y).value + " ";
+				
+			str = str + "\n";
+		}
+		
+		return str;
 	}
 }
