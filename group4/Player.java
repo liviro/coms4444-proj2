@@ -167,17 +167,18 @@ public class Player extends offset.sim.Player {
 		if (!didSetup) {
 			board = new Board(size, grid);
 			didSetup = true;
-		}
+		} else {
+			// Keep our board up to date by processing the most recent moves made by opponent (probably faster than copying the whole grid again)
+			// An element in the history ArrayList is itself an ArrayList where the first element is the player id and the second is a movePair (each of which must be cast)
+			int i = history.size() - 1;
+			while (i >= 0 && (int) history.get(i).get(0) != id) {
+				int player = (int) history.get(i).get(0);
+				movePair mp = (movePair) history.get(i).get(1);
+				if (mp.move)
+					board.processMove(new Move(mp.src.x, mp.src.y, mp.target.x, mp.target.y, player));
 				
-		// Keep our board up to date by processing the most recent moves made by opponent (probably faster than copying the whole grid again)
-		// An element in the history ArrayList is itself an ArrayList where the first element is the player id and the second is a movePair (each of which must be cast)
-		int i = history.size() - 1;
-		while (i >= 0 && (int) history.get(i).get(0) != id) {
-			int player = (int) history.get(i).get(0);
-			movePair mp = (movePair) history.get(i).get(1);
-			if (mp.move)
-				board.processMove(new Move(mp.src.x, mp.src.y, mp.target.x, mp.target.y, player));
-			i--;
+				i--;
+			}
 		}
 		
 		// Call a strategy to actually determine the move to make
