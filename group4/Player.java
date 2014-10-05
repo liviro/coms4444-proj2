@@ -54,6 +54,46 @@ public class Player extends offset.sim.Player {
 	}
 	
 	///////////////////////// STRATEGY: RECURSIVE MOVE SEARCH /////////////////////////
+	private Move searchStrategy() {
+		Move move = null;
+		double maxCoinsPerMove = 0;
+		
+		for (int x = 0; x < size; x++) {
+			for (int y = 0; y < size; y++) {
+				Point p = board.getPoint(x, y);
+				
+				// Only focus on capturing neutral or opponent coins
+				if (p.owner != id) {
+					ArrayList<Move> moves = movesToDoubleValue(new Board(board), new Coord(x,y), pr, id);
+					
+					if (moves != null) {
+						double coinsPerMove = p.value / moves.size();
+						
+						if (coinsPerMove > maxCoinsPerMove) {
+							maxCoinsPerMove = coinsPerMove;
+							move = moves.get(0);			// Actually make the first move in the sequence
+						}
+					}
+				}
+			}
+		}
+		
+		// If we can't capture neutral or opponent coins, just make some valid move
+		if (move == null) {
+			for (int x = 0; x < size; x++) {
+				for (int y = 0; y < size; y++) {
+					ArrayList<Coord> validMoves = board.validMovesFrom(x, y, pr);
+					
+					if (!validMoves.isEmpty()) {
+						move = new Move(x, y, validMoves.get(0).x, validMoves.get(0).y, id);
+					}
+				}
+			}
+		}
+		
+		return move;
+	}
+	
 	// Returns a shortest list of moves such that, after the moves, the point at coordinate c has value value
 	private ArrayList<Move> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId) {
 		Point p = board.getPoint(c);
@@ -141,7 +181,7 @@ public class Player extends offset.sim.Player {
 		}
 		
 		// Call a strategy to actually determine the move to make
-		Move move = cornerStrategy();
+		Move move = searchStrategy();
 
 		// Transform the resulting move from our representation to the simulator representation
 		movePair movepr = new movePair();
