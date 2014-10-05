@@ -18,17 +18,17 @@ public class Board {
 		this.gridNew = new int[size];
 	}
 	
-	Board(int size, Point grid[]) {
+	Board(int size, Point gridIn[]) {
 		this.size = size;
 		
 		// old
 		this.grid = new ArrayList<Point>();
-		this.setGrid(grid);
+		this.setGrid(gridIn);
 		
 		// new
 		this.gridNew = new int[size];
 		for(int i = 0; i < size; i++) {
-			gridNew[i] = encodePoint(grid[i]);
+			gridNew[i] = encodePoint(gridIn[i]);
 		}
 	}
 	
@@ -43,8 +43,8 @@ public class Board {
 		
 		// new
 		this.gridNew = new int[this.size];
-		for (int i = 0; i < board.grid.size(); i++) {
-			this.gridNew[i] = encodePoint(board.grid.get(i));
+		for(int j = 0; j < board.gridNew.length; j++) {
+			this.gridNew[j] = board.gridNew[j];
 		}
 		
 	}
@@ -95,10 +95,9 @@ public class Board {
 		}
 		
 		// new
-		this.size = gridIn.length;
 		this.gridNew = new int[this.size];
 		for(int i = 0; i < this.size; i++) {
-			this.gridNew[i] = encodePoint(gridIn[i]);
+			this.gridNew[i] = encodePoint(new Point(gridIn[i]));
 		}
 		
 	}
