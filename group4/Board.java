@@ -10,6 +10,7 @@ import offset.group4.Move;
 public class Board {
 	int[] grid;
 	int size;
+	int[] scores = new int[2];
 	
 	// CONSTRUCTORS
 	Board(int size) {
@@ -33,6 +34,9 @@ public class Board {
 		for(int j = 0; j < board.grid.length; j++) {
 			this.grid[j] = board.grid[j];
 		}
+
+		this.scores[0] = board.scores[0];
+		this.scores[1] = board.scores[1];
 		
 	}
 	
@@ -110,28 +114,45 @@ public class Board {
 		return x*size + y;
 	}
 	
-	
 	// PUBLIC METHODS
 	public ArrayList<Point> get() {
 		return getBoard();
 	}
 	
 	public void setGrid(Point gridIn[]) {
+		
+		this.scores[0] = 0;
+		this.scores[1] = 0;
+		
 		this.grid = new int[this.size*this.size];
 		for(int i = 0; i < this.size*this.size; i++) {
 			this.grid[i] = encodePoint(new Point(gridIn[i]));
+			
+			if (gridIn[i].owner >= 0) {
+				this.scores[gridIn[i].owner] += gridIn[i].value;
+			}
 		}
-		
 	}
 	
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int playerId) {
+
 		int srcIdx = getIndex(xSrc, ySrc);
 		int tgtIdx = getIndex(xTarget, yTarget);
 		
 		grid[srcIdx] = setOwner(setVal(grid[srcIdx], 0), -1);
 		grid[tgtIdx] = setOwner(setVal(grid[tgtIdx], 2*getVal(grid[tgtIdx])), playerId);
+		
+		if(getOwner(grid[srcIdx]) >= 0) {
+			scores[getOwner(grid[srcIdx])] -= getVal(grid[srcIdx]);
+		}
+		
+		if(getOwner(grid[tgtIdx]) >= 0) {
+			scores[getOwner(grid[tgtIdx])] -= getVal(grid[tgtIdx]);
+		}
+		
+		scores[playerId] += getVal(grid[tgtIdx]);
 	}
 	
 	public void processMove(Coord src, Coord target, int player) {
