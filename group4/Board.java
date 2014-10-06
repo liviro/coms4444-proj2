@@ -8,7 +8,7 @@ import offset.group4.Coord;
 import offset.group4.Move;
 
 public class Board {
-	ArrayList<Point> grid;
+//	ArrayList<Point> grid;
 	int[] gridNew;
 	int size;
 	
@@ -22,8 +22,8 @@ public class Board {
 		this.size = size;
 		
 		// old
-		this.grid = new ArrayList<Point>();
-		this.setGrid(gridIn);
+//		this.grid = new ArrayList<Point>();
+//		this.setGrid(gridIn);
 		
 		// new
 		this.gridNew = new int[size*size];
@@ -36,10 +36,10 @@ public class Board {
 		this.size = board.size;
 		
 		// old
-		this.grid = new ArrayList<Point>();
-		for (int i = 0; i < board.grid.size(); i++) {
-			this.grid.add(new Point(board.grid.get(i)));
-		}
+//		this.grid = new ArrayList<Point>();
+//		for (int i = 0; i < board.grid.size(); i++) {
+//			this.grid.add(new Point(board.grid.get(i)));
+//		}
 		
 		// new
 		this.gridNew = new int[this.size*this.size];
@@ -131,9 +131,9 @@ public class Board {
 	
 	public void setGrid(Point gridIn[]) {
 		// old
-		for (int i = 0; i < gridIn.length; i++) {
-			this.grid.add(new Point(gridIn[i]));
-		}
+//		for (int i = 0; i < gridIn.length; i++) {
+//			this.grid.add(new Point(gridIn[i]));
+//		}
 		
 		// new
 		this.gridNew = new int[this.size*this.size];
@@ -149,12 +149,12 @@ public class Board {
 		int srcIdx = getIndex(xSrc, ySrc);
 		int tgtIdx = getIndex(xTarget, yTarget);
 		
-		grid.get(xSrc*size + ySrc).value = 0;
-		grid.get(xSrc*size + ySrc).owner = -1;
+//		grid.get(xSrc*size + ySrc).value = 0;
+//		grid.get(xSrc*size + ySrc).owner = -1;
 		gridNew[srcIdx] = setOwner(setVal(gridNew[srcIdx], 0), -1);
 
-		grid.get(xTarget*size + yTarget).value *= 2;
-		grid.get(xTarget*size + yTarget).owner = playerId;
+//		grid.get(xTarget*size + yTarget).value *= 2;
+//		grid.get(xTarget*size + yTarget).owner = playerId;
 		gridNew[tgtIdx] = setOwner(setVal(gridNew[tgtIdx], 2*getVal(gridNew[tgtIdx])), playerId);
 	}
 	
@@ -167,7 +167,8 @@ public class Board {
 	}
 	
 	public Point getPoint(int x, int y) {
-		return new Point(grid.get(x*size + y));		// Return a copy so user cannot modify the board
+		//return new Point(grid.get(x*size + y));		// Return a copy so user cannot modify the board
+		return decodePoint(gridNew[getIndex(x, y)]);
 	}
 	
 	public Point getPoint(Coord c) {
