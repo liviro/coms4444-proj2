@@ -8,43 +8,30 @@ import offset.group4.Coord;
 import offset.group4.Move;
 
 public class Board {
-//	ArrayList<Point> grid;
-	int[] gridNew;
+	int[] grid;
 	int size;
 	
 	// CONSTRUCTORS
 	Board(int size) {
 		this.size = size;
-		this.gridNew = new int[size*size];
+		this.grid = new int[size*size];
 	}
 	
 	Board(int size, Point gridIn[]) {
 		this.size = size;
 		
-		// old
-//		this.grid = new ArrayList<Point>();
-//		this.setGrid(gridIn);
-		
-		// new
-		this.gridNew = new int[size*size];
+		this.grid = new int[size*size];
 		for(int i = 0; i < size*size; i++) {
-			gridNew[i] = encodePoint(gridIn[i]);
+			grid[i] = encodePoint(gridIn[i]);
 		}
 	}
 	
 	Board(Board board) {
 		this.size = board.size;
-		
-		// old
-//		this.grid = new ArrayList<Point>();
-//		for (int i = 0; i < board.grid.size(); i++) {
-//			this.grid.add(new Point(board.grid.get(i)));
-//		}
-		
-		// new
-		this.gridNew = new int[this.size*this.size];
-		for(int j = 0; j < board.gridNew.length; j++) {
-			this.gridNew[j] = board.gridNew[j];
+
+		this.grid = new int[this.size*this.size];
+		for(int j = 0; j < board.grid.length; j++) {
+			this.grid[j] = board.grid[j];
 		}
 		
 	}
@@ -91,29 +78,29 @@ public class Board {
 	}
 
 	private int setX(int enc, int xIn) {
-		return xIn * (int) Math.pow(10, 8) + (enc % (int) Math.pow(10, 8));
+		return xIn * (int) Math.pow(10, 8) + (enc % (int) Math.pow(10, 8) * (int) Math.pow(10, 8));
 	}
 
 	private int setY(int enc, int yIn) {
-		return (enc / (int) Math.pow(10, 8)) + yIn * (int) Math.pow(10, 6) + (enc % (int) Math.pow(10, 6));
+		return (enc / (int) Math.pow(10, 8) * (int) Math.pow(10, 8)) + (yIn * (int) Math.pow(10, 6)) + (enc % (int) Math.pow(10, 6));
 	}
 
 	private int setVal(int enc, int valIn) {
-		return (enc / (int) Math.pow(10, 6)) + valIn * (int) Math.pow(10, 2) + (enc % (int) Math.pow(10, 2));
+		return (enc / (int) Math.pow(10, 6) * (int) Math.pow(10, 6))  + (valIn * (int) Math.pow(10, 2)) + (enc % (int) Math.pow(10, 2));
 	}
 
 	private int setOwner(int enc, int ownerIn) {
-		return (enc / (int) Math.pow(10, 2)) + (ownerIn+1) * (int) Math.pow(10, 1) + (enc % (int) Math.pow(10, 1));
+		return (enc / (int) Math.pow(10, 2) * (int) Math.pow(10, 2)) + ((ownerIn+1) * (int) Math.pow(10, 1)) + (enc % (int) Math.pow(10, 1));
 	}
 
 	private int setChange(int enc, boolean changeIn) {
-		return (enc / (int) Math.pow(10, 1)) + (changeIn ? 1 : 0);
+		return (enc / (int) Math.pow(10, 1) * (int) Math.pow(10, 1)) + (changeIn ? 1 : 0);
 	}
 
 	private ArrayList<Point> getBoard() {
 		ArrayList<Point> decoded = new ArrayList<Point>();
-		for(int i = 0; i < gridNew.length; i++) {
-			decoded.add( decodePoint(gridNew[i]) );
+		for(int i = 0; i < grid.length; i++) {
+			decoded.add( decodePoint(grid[i]) );
 		}
 		return decoded;
 	}
@@ -130,15 +117,9 @@ public class Board {
 	}
 	
 	public void setGrid(Point gridIn[]) {
-		// old
-//		for (int i = 0; i < gridIn.length; i++) {
-//			this.grid.add(new Point(gridIn[i]));
-//		}
-		
-		// new
-		this.gridNew = new int[this.size*this.size];
+		this.grid = new int[this.size*this.size];
 		for(int i = 0; i < this.size*this.size; i++) {
-			this.gridNew[i] = encodePoint(new Point(gridIn[i]));
+			this.grid[i] = encodePoint(new Point(gridIn[i]));
 		}
 		
 	}
@@ -149,13 +130,8 @@ public class Board {
 		int srcIdx = getIndex(xSrc, ySrc);
 		int tgtIdx = getIndex(xTarget, yTarget);
 		
-//		grid.get(xSrc*size + ySrc).value = 0;
-//		grid.get(xSrc*size + ySrc).owner = -1;
-		gridNew[srcIdx] = setOwner(setVal(gridNew[srcIdx], 0), -1);
-
-//		grid.get(xTarget*size + yTarget).value *= 2;
-//		grid.get(xTarget*size + yTarget).owner = playerId;
-		gridNew[tgtIdx] = setOwner(setVal(gridNew[tgtIdx], 2*getVal(gridNew[tgtIdx])), playerId);
+		grid[srcIdx] = setOwner(setVal(grid[srcIdx], 0), -1);
+		grid[tgtIdx] = setOwner(setVal(grid[tgtIdx], 2*getVal(grid[tgtIdx])), playerId);
 	}
 	
 	public void processMove(Coord src, Coord target, int player) {
@@ -167,8 +143,7 @@ public class Board {
 	}
 	
 	public Point getPoint(int x, int y) {
-		//return new Point(grid.get(x*size + y));		// Return a copy so user cannot modify the board
-		return decodePoint(gridNew[getIndex(x, y)]);
+		return decodePoint(grid[getIndex(x, y)]);
 	}
 	
 	public Point getPoint(Coord c) {
