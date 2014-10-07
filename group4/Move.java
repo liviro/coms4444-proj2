@@ -21,6 +21,12 @@ public class Move {
         this.playerId = playerId;
     }
     
+    public Move(Move move, int playerId) {
+        this.src = new Coord(move.src);
+        this.target = new Coord(move.target);
+        this.playerId = playerId;
+    }
+    
 	@Override public String toString() {
 		return new String("(p" + this.playerId + " " + this.src + "->" + this.target + ")");
 	}

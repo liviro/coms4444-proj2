@@ -12,12 +12,14 @@ import offset.sim.Point;
 
 public class MoveSequenceAnalysis {
 	private Board board;
-	private ArrayList<ArrayList<MoveSequence>> moveSequences;
+
+	private ArrayList<MoveSequence> allMoveSequences;
+	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByStart;
 	
 	public MoveSequenceAnalysis(Board board) {
 		this.board = new Board(board);
-		this.moveSequences = new ArrayList<ArrayList<MoveSequence>>();
-		this.moveSequences.ensureCapacity(board.size * board.size);
+		this.allMoveSequences = new ArrayList<MoveSequence>();
+		this.moveSequencesByStart = new HashMap<String, ArrayList<MoveSequence>>();
 	}
 	
 	// Generate all of the sequences that double each cell's value, and store them
@@ -27,13 +29,21 @@ public class MoveSequenceAnalysis {
 				ArrayList<MoveSequence> moveSequences = movesToDoubleValue(board, new Coord(x,y), pr, playerId);
 				
 				if (moveSequences != null) {
-					for (MoveSequence moveSequence : moveSequences)
-						moveSequence.coinSwing = (moveSequence.board.scores[playerId] - board.scores[playerId]) - (board.scores[1-playerId] - moveSequence.board.scores[1-playerId]);
+					for (MoveSequence moveSequence : moveSequences) {
+						moveSequence.coinSwing = (moveSequence.board.scores[playerId] - board.scores[playerId]) - (moveSequence.board.scores[1-playerId] - board.scores[1-playerId]);
+						
+						Move firstMove = moveSequence.moves.get(0);
+
+						ArrayList<MoveSequence> moveSequencesStartingAt = moveSequencesByStart.get(firstMove.toString());
+						if (moveSequencesStartingAt == null)
+							moveSequencesStartingAt = new ArrayList<MoveSequence>();
+						
+						moveSequencesStartingAt.add(moveSequence);
+						moveSequencesByStart.put(firstMove.toString(), moveSequencesStartingAt);
+						
+						allMoveSequences.add(moveSequence);
+					}
 				}
-				
-				// For some reason, simply adding the sequences to the list is quite slow, whereas generating the sequences is fast
-				// Need to fix/optimize this at some point
-				this.moveSequences.add(x*board.size + y, moveSequences);
 			}
 		}
 	}
@@ -42,22 +52,32 @@ public class MoveSequenceAnalysis {
 	public void prune(Pair pr) {
 		
 	}
-	
-	public ArrayList<MoveSequence> getSequences(int x, int y) {
-		return moveSequences.get(x*board.size + y);
+
+	public ArrayList<MoveSequence> getAllMoveSequences() {
+		return allMoveSequences;
 	}
 	
-	public ArrayList<MoveSequence> getSequences(Coord c) {
-		return getSequences(c.x, c.y);
+	public ArrayList<MoveSequence> getAllDisruptibleMoveSequences(Move move, Pair pair) {
+		ArrayList<MoveSequence> moveSequencesFiltered = new ArrayList<MoveSequence>();
+		
+		for (MoveSequence moveSequence : allMoveSequences) {
+			if (moveSequence.isDisruptedBy(board, move))
+				moveSequencesFiltered.add(moveSequence);
+		}
+		
+		return moveSequencesFiltered;
 	}
 	
+	public ArrayList<MoveSequence> getMoveSequencesByStart(Move move) {
+		return moveSequencesByStart.get(move.toString());
+	}
 	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value
 	private ArrayList<MoveSequence> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId) {
 		Point p = board.getPoint(c);
 		
 		if (p.value == value) {
-			MoveSequence moveSequence = new MoveSequence(board);
+			MoveSequence moveSequence = new MoveSequence(board, pair);
 			ArrayList<MoveSequence> moveSequences = new ArrayList<MoveSequence>();
 			moveSequences.add(moveSequence);			
 			return moveSequences;						// No moves needed, so sequences contains a single sequence with no moves

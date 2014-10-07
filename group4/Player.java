@@ -31,6 +31,18 @@ public class Player extends offset.sim.Player {
 		
 	}
 	
+	///////////////////////// STATEGY: RANDOM ///////////////////////////
+	private Move randomStrategy() {
+		ArrayList<Move> validMoves = board.validMoves(pairSelf, id);
+		
+		if (validMoves.isEmpty())
+			return null;
+		
+		Random random = new Random();
+		System.out.printf("Valid moves remaining: %d\n", validMoves.size());
+		return validMoves.get(random.nextInt(validMoves.size()));
+	}
+	
 	///////////////////////// STRATEGY: CORNERS /////////////////////////
 	// Choose move based on shortest Manhattan distance from the corners
 	private Move cornerStrategy() {
@@ -58,37 +70,67 @@ public class Player extends offset.sim.Player {
 	}
 	
 	///////////////////////// STRATEGY: RECURSIVE MOVE SEARCH /////////////////////////
+	private MoveSequence getMoveSequenceWithMaxCoinSwingPerMove(ArrayList<MoveSequence> moveSequences) {
+		MoveSequence bestMoveSequence = null;
+		double maxCoinSwingPerMove = 0;
+		
+		for (MoveSequence moveSequence : moveSequences) {
+			if (moveSequence.coinSwing / moveSequence.moves.size() > maxCoinSwingPerMove) {
+				bestMoveSequence = moveSequence;
+				maxCoinSwingPerMove = moveSequence.coinSwing / moveSequence.moves.size();
+			}
+		}
+		
+		return bestMoveSequence;
+	}
+	
 	private Move searchStrategy() {
 		MoveSequenceAnalysis analysisSelf = new MoveSequenceAnalysis(board);
 		MoveSequenceAnalysis analysisOpponent = new MoveSequenceAnalysis(board);
 		
 		analysisSelf.analyze(id, pairSelf);
 		analysisOpponent.analyze(idOpponent, pairOpponent);
-		
+
+		/*
+		 * TODO: Implement pruning
+		 */
 		analysisSelf.prune(pairOpponent);
 		
-		/*
-		 * TODO: Consider all possible moves in light of the analyses and choose the one with the highest value according to our valuation methodology
-		 */
+		// Generate all possible valid moves
+		ArrayList<Move> validMoves = board.validMoves(pairSelf, id);
 		
+		if (validMoves.isEmpty())
+			return null;
 		
-		Move move = null;
-		double maxCoinsPerMove = 0;
+		// From among the possible valid moves, choose the one with the highest value according to our valuation methodology
+		Move bestMove = null;
+		double bestMoveScore = 0;
 		
-		// If we can't capture neutral or opponent coins, just make some valid move
-		if (move == null) {
-			for (int x = 0; x < size; x++) {
-				for (int y = 0; y < size; y++) {
-					ArrayList<Coord> validMoves = board.validMovesFrom(x, y, pairSelf);
-					
-					if (!validMoves.isEmpty()) {
-						move = new Move(x, y, validMoves.get(0).x, validMoves.get(0).y, id);
-					}
-				}
+		for (Move move : validMoves) {
+			// Weighted 'score' of the move in terms of its aggressiveness, defensiveness, and flexibility effects
+			double score = 0;
+			
+			// Aggressiveness: Determine the sequence starting with this move with the highest ratio of coin swing / # moves
+			ArrayList<MoveSequence> moveSequencesByStartSelf = analysisSelf.getMoveSequencesByStart(move);
+			MoveSequence moveSequenceWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesByStartSelf);
+			double agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
+			
+			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
+			//ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisSelf.getAllDisruptibleMoveSequences(move, pairSelf);
+			//MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
+			//double def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
+			double def = 0;
+			
+			
+			score = 0.33*agg + 0.33*def;
+			
+			if (score > bestMoveScore) {
+				bestMove = move;
+				bestMoveScore = score;
 			}
 		}
 		
-		return move;
+		return bestMove;
 	}
 	
 	
@@ -117,6 +159,7 @@ public class Player extends offset.sim.Player {
 		
 		// Call a strategy to actually determine the move to make
 		Move move = searchStrategy();
+		//Move move = randomStrategy();
 
 		// Transform the resulting move from our representation to the simulator representation
 		movePair movepr = new movePair();

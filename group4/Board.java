@@ -125,6 +125,22 @@ public class Board {
 		return validMovesFrom(c.x, c.y, pr);
 	}
 	
+	public ArrayList<Move> validMoves(Pair pr, int playerId)
+	{
+		ArrayList<Move> validMoves = new ArrayList<Move>();
+		
+		for (int x = 0; x < size; x++) {
+			for (int y = 0; y < size; y++) {
+				ArrayList<Coord> validMovesFrom = validMovesFrom(x, y, pr);
+				
+				for (Coord c : validMovesFrom)
+					validMoves.add(new Move(x, y, c.x, c.y, playerId));
+			}
+		}
+		
+		return validMoves;
+	}
+	
 	public boolean isInBounds(int x, int y) {
 		return (x >= 0 && x < this.size && y >= 0 && y < this.size);
 	}
