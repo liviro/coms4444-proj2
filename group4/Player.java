@@ -109,18 +109,23 @@ public class Player extends offset.sim.Player {
 		for (Move move : validMoves) {
 			// Weighted 'score' of the move in terms of its aggressiveness, defensiveness, and flexibility effects
 			double score = 0;
+			double agg = 0;
+			double def = 0;
 			
 			// Aggressiveness: Determine the sequence starting with this move with the highest ratio of coin swing / # moves
 			ArrayList<MoveSequence> moveSequencesByStartSelf = analysisSelf.getMoveSequencesByStart(move);
 			MoveSequence moveSequenceWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesByStartSelf);
-			double agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
+			
+			if (moveSequenceWithMaxCoinSwingPerMove != null)
+				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
 			
 			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
-			//ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisSelf.getAllDisruptibleMoveSequences(move, pairSelf);
-			//MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
-			//double def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
-			double def = 0;
+			/*ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisSelf.getAllDisruptibleMoveSequences(move, pairSelf);
+			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
+			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
+				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
+			*/
 			
 			score = 0.33*agg + 0.33*def;
 			
@@ -165,7 +170,7 @@ public class Player extends offset.sim.Player {
 		movePair movepr = new movePair();
 		if (move != null) {
 			board.processMove(move);
-			
+	
 			movepr.move = true;
 			movepr.src = grid[move.src.x*size + move.src.y];
 			movepr.target = grid[move.target.x*size + move.target.y];

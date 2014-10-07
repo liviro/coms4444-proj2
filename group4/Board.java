@@ -7,17 +7,28 @@ import offset.sim.Point;
 import offset.group4.Coord;
 import offset.group4.Move;
 
+
 public class Board {
-	ArrayList<Point> grid;
 	int size;
 	int[] scores = new int[2];
+	
+	int[] owners;
+	int[] values;
 	
 	// CONSTRUCTORS
 	Board(int size, Point grid[]) {
 		this.size = size;
 		
-		this.grid = new ArrayList<Point>();
-		this.setGrid(grid);
+		owners = new int[size*size];
+		values = new int[size*size];
+		
+		for (int i = 0; i < grid.length; i++) {
+			this.owners[i] = grid[i].owner;
+			this.values[i] = grid[i].value;
+			
+			if (grid[i].owner >= 0)
+				this.scores[grid[i].owner] += grid[i].value;
+		}
 	}
 	
 	Board(Board board) {
@@ -25,47 +36,30 @@ public class Board {
 		this.scores[0] = board.scores[0];
 		this.scores[1] = board.scores[1];
 		
-		this.grid = new ArrayList<Point>();
-		for (int i = 0; i < board.grid.size(); i++)
-			this.grid.add(new Point(board.grid.get(i)));
+		this.owners = board.owners.clone();
+		this.values = board.values.clone();
 	}
 	
 	// PRIVATE METHODS
 	
 	
-	// PUBLIC METHODS	
-	public void setGrid(Point grid[]) {
-		this.scores[0] = 0;
-		this.scores[1] = 0;
-		
-		for (int i = 0; i < grid.length; i++) {
-			this.grid.add(new Point(grid[i]));
-			
-			if (grid[i].owner >= 0)
-				this.scores[grid[i].owner] += grid[i].value; 
-		}
-	}
-	
+	// PUBLIC METHODS
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int playerId) {
-		Point src = grid.get(xSrc*size + ySrc);
-	
-		if (src.owner >= 0)
-			scores[src.owner] -= src.value;
+		if (owners[xSrc*size + ySrc] >= 0)
+			scores[owners[xSrc*size + ySrc]] -= values[xSrc*size + ySrc];
 		
-		src.value = 0;
-		src.owner = -1;
+		values[xSrc*size + ySrc] = 0;
+		owners[xSrc*size + ySrc] = -1;
 
-		Point target = grid.get(xTarget*size + yTarget);
-		
-		if (target.owner >= 0)
-			scores[target.owner] -= target.value;
+		if (owners[xTarget*size + yTarget] >= 0)
+			scores[owners[xTarget*size + yTarget]] -= values[xTarget*size + yTarget];
 
-		target.value *= 2;
-		target.owner = playerId;
+		values[xTarget*size + yTarget] *= 2;
+		owners[xTarget*size + yTarget] = playerId;
 		
-		scores[playerId] += target.value;
+		scores[playerId] += values[xTarget*size + yTarget];
 	}
 	
 	public void processMove(Coord src, Coord target, int player) {
@@ -77,7 +71,14 @@ public class Board {
 	}
 	
 	public Point getPoint(int x, int y) {
-		return new Point(grid.get(x*size + y));		// Return a copy so user cannot modify the board
+		Point p = new Point();
+		
+		p.x = x;
+		p.y = y;
+		p.owner = owners[x*size + y];
+		p.value = values[x*size + y];
+
+		return p;
 	}
 	
 	public Point getPoint(Coord c) {

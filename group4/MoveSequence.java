@@ -20,15 +20,15 @@ public class MoveSequence {
 	}
 	
 	public boolean isDisruptedBy(Board board, Move testMove) {
-		//Board newBoard = new Board(board);
-		//newBoard.processMove(testMove);
-		//System.out.printf("Testing if %s disrupts me\n", testMove);
-		/*for (Move move : this.moves) {
+		Board newBoard = new Board(board);
+		newBoard.processMove(testMove);
+			
+		for (Move move : this.moves) {
 			if (newBoard.isMoveValid(move, pair))
 				newBoard.processMove(move);
 			else
 				return true;
-		}*/
+		}
 		
 		return false;
 	}
