@@ -77,7 +77,7 @@ public class MoveSequenceAnalysis {
 			if (!moveSequence.isDisruptible(board, pairOpponent))
 				nonDisruptibleMoveSequences.add(moveSequence);
 		
-		return moveSequences;
+		return nonDisruptibleMoveSequences;
 	}
 	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value
