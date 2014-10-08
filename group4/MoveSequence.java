@@ -33,6 +33,21 @@ public class MoveSequence {
 		return false;
 	}
 	
+	public boolean isDisruptible(Board board, Pair pair) {
+		Board newBoard = new Board(board);
+
+		for (Move move : this.moves) {
+			newBoard.processMove(move);
+			
+			if (!newBoard.validMovesFrom(move.target, pair).isEmpty()) {
+				//System.out.printf("Disruptible: %s\n", this.toString());
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	@Override public String toString() {
 		String str = "Coin swing " + coinSwing + " by ";
 		

@@ -48,11 +48,6 @@ public class MoveSequenceAnalysis {
 		}
 	}
 	
-	// Remove from moveSequences any sequences that (a) can be disrupted in one move by pr, or (b) are fruitless because they result in a pile that can be immediately captured by pr
-	public void prune(Pair pr) {
-		
-	}
-
 	public ArrayList<MoveSequence> getAllMoveSequences() {
 		return allMoveSequences;
 	}
@@ -72,9 +67,25 @@ public class MoveSequenceAnalysis {
 		return moveSequencesByStart.get(move.toString());
 	}
 	
+	public ArrayList<MoveSequence> getNonDisruptibleMoveSequencesByStart(Move move, Pair pairOpponent) {
+		ArrayList<MoveSequence> moveSequences = getMoveSequencesByStart(move);
+		ArrayList<MoveSequence> nonDisruptibleMoveSequences = new ArrayList<MoveSequence>();
+		
+		for (MoveSequence moveSequence : moveSequences)
+			if (!moveSequence.isDisruptible(board, pairOpponent))
+				nonDisruptibleMoveSequences.add(moveSequence);
+		
+		return moveSequences;
+	}
+	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value
 	private ArrayList<MoveSequence> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId) {
 		Point p = board.getPoint(c);
+		
+		boolean debug = false;
+		if (c.x == 5 && c.y == 4 && playerId == 1)
+			debug = true;
+		//debug = false;
 		
 		if (p.value == value) {
 			MoveSequence moveSequence = new MoveSequence(board, pair);
@@ -84,11 +95,20 @@ public class MoveSequenceAnalysis {
 		} else if (p.value == 0 || p.value > value) {
 			return null;								// Impossible to get p to have value
 		} else {
+			if (debug)
+				System.out.printf("Trying to make %s have value %d from %d\n", c, value, board.getPoint(c).value);
+			
 			ArrayList<MoveSequence> moveSequences = new ArrayList<MoveSequence>();
 			int currentValue = p.value;
 			
 			while (currentValue < value) {
+				if (debug)
+					System.out.printf("  STEP: make %s double its current value %d\n", c, currentValue);
+	
 				if (moveSequences.isEmpty()) {
+					if (debug)
+						System.out.printf("  Existing moveSequences was empty\n", c, currentValue);
+					
 					ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(board, c, pair, playerId);
 					
 					if (moveSequencesToDoubleValue != null) {
@@ -97,10 +117,18 @@ public class MoveSequenceAnalysis {
 						
 						currentValue *= 2;
 					} else {
+						if (debug)
+							System.out.printf("  BREAK: returning null\n");
+						
 						return null;
 					}
 				} else {
+					if (debug)
+						System.out.printf("  Existing moveSequences was not empty\n", c, currentValue);
+					
 					boolean canDoubleValue = false;
+					
+					ArrayList<MoveSequence> newMoveSequences = new ArrayList<MoveSequence>();
 					
 					for (MoveSequence moveSequence : moveSequences) {
 						ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(moveSequence.board, c, pair, playerId);
@@ -108,15 +136,33 @@ public class MoveSequenceAnalysis {
 						if (moveSequencesToDoubleValue != null) {
 							canDoubleValue = true;
 							
-							for (MoveSequence moveSequenceToDoubleValue : moveSequencesToDoubleValue)
-								moveSequence.moves.addAll(moveSequenceToDoubleValue.moves);
+							for (MoveSequence moveSequenceToDoubleValue : moveSequencesToDoubleValue) {
+								MoveSequence newMoveSequence = new MoveSequence(board, pair);
+								newMoveSequence.moves.addAll(moveSequence.moves);
+								newMoveSequence.moves.addAll(moveSequenceToDoubleValue.moves);
+								
+								for (Move move : newMoveSequence.moves)
+									newMoveSequence.board.processMove(move);
+								
+								newMoveSequences.add(newMoveSequence);
+							}
 						}
 					}
+					
+					moveSequences = newMoveSequences;
 					
 					if (canDoubleValue) {
 						currentValue *= 2;
 					} else {
 						return null;
+					}
+				}
+				
+				
+				if (debug) {
+					System.out.printf("  END OF STEP:\n");
+					for (MoveSequence moveSequence : moveSequences) {
+						System.out.printf("    %d   %s\n", currentValue, moveSequence);
 					}
 				}
 			}

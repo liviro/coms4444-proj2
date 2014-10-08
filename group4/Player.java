@@ -91,11 +91,6 @@ public class Player extends offset.sim.Player {
 		analysisSelf.analyze(id, pairSelf);
 		analysisOpponent.analyze(idOpponent, pairOpponent);
 
-		/*
-		 * TODO: Implement pruning
-		 */
-		analysisSelf.prune(pairOpponent);
-		
 		// Generate all possible valid moves
 		ArrayList<Move> validMoves = board.validMoves(pairSelf, id);
 		
