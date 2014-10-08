@@ -130,7 +130,11 @@ public class Player extends offset.sim.Player {
 			}
 		}
 		
-		return bestMove;
+		if (bestMove == null) {
+			return randomStrategy();
+		} else {
+			return bestMove;
+		}
 	}
 	
 	
