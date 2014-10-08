@@ -20,13 +20,9 @@ public class MoveSequence {
 	}
 	
 	public boolean isDisruptedBy(Board board, Move testMove) {
-		Board newBoard = new Board(board);
-		newBoard.processMove(testMove);
-			
 		for (Move move : this.moves) {
-			if (newBoard.isMoveValid(move, pair))
-				newBoard.processMove(move);
-			else
+			if (move.src.equals(testMove.src) || move.src.equals(testMove.target) ||
+				move.target.equals(testMove.src) || move.target.equals(testMove.target))
 				return true;
 		}
 		
@@ -39,10 +35,8 @@ public class MoveSequence {
 		for (Move move : this.moves) {
 			newBoard.processMove(move);
 			
-			if (!newBoard.validMovesFrom(move.target, pair).isEmpty()) {
-				//System.out.printf("Disruptible: %s\n", this.toString());
+			if (!newBoard.validMovesFrom(move.target, pair).isEmpty())
 				return true;
-			}
 		}
 		
 		return false;

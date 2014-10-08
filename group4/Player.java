@@ -115,12 +115,11 @@ public class Player extends offset.sim.Player {
 				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
 			
 			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
-			/*ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisSelf.getAllDisruptibleMoveSequences(move, pairSelf);
+			ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisOpponent.getAllDisruptibleMoveSequences(move, pairSelf);
 			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
 			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
 				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
-			*/
 			
 			score = 0.33*agg + 0.33*def;
 			
