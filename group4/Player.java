@@ -108,7 +108,7 @@ public class Player extends offset.sim.Player {
 			double def = 0;
 			
 			// Aggressiveness: Determine the sequence starting with this move with the highest ratio of coin swing / # moves
-			ArrayList<MoveSequence> moveSequencesByStartSelf = analysisSelf.getMoveSequencesByStart(move);
+			ArrayList<MoveSequence> moveSequencesByStartSelf = analysisSelf.getNonDisruptibleMoveSequencesByStart(move, pairOpponent);
 			MoveSequence moveSequenceWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesByStartSelf);
 			
 			if (moveSequenceWithMaxCoinSwingPerMove != null)
@@ -168,6 +168,7 @@ public class Player extends offset.sim.Player {
 		// Transform the resulting move from our representation to the simulator representation
 		movePair movepr = new movePair();
 		if (move != null) {
+			System.out.printf("Playing as %d, playing move %s\n", id, move);
 			board.processMove(move);
 	
 			movepr.move = true;
@@ -175,6 +176,7 @@ public class Player extends offset.sim.Player {
 			movepr.target = grid[move.target.x*size + move.target.y];
 			return movepr;
 		} else {
+			System.out.printf("Playing as %d, passing\n", id);
 			movepr.move = false;
 			return movepr;
 		}
