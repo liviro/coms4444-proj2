@@ -11,6 +11,8 @@ import offset.sim.Pair;
 import offset.sim.Point;
 
 public class MoveSequenceAnalysis {
+	final static int MAX_DEPTH = 2;
+	
 	private Board board;
 
 	private ArrayList<MoveSequence> allMoveSequences;
@@ -26,7 +28,7 @@ public class MoveSequenceAnalysis {
 	public void analyze(int playerId, Pair pr) {
 		for (int x = 0; x < board.size; x++) {
 			for (int y = 0; y < board.size; y++) {
-				ArrayList<MoveSequence> moveSequences = movesToDoubleValue(board, new Coord(x,y), pr, playerId);
+				ArrayList<MoveSequence> moveSequences = movesToDoubleValue(board, new Coord(x,y), pr, playerId, 0);
 				
 				if (moveSequences != null) {
 					for (MoveSequence moveSequence : moveSequences) {
@@ -79,13 +81,8 @@ public class MoveSequenceAnalysis {
 	}
 	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value
-	private ArrayList<MoveSequence> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId) {
+	private ArrayList<MoveSequence> movesToMakeValue(Board board, Coord c, int value, Pair pair, int playerId, int depth) {
 		Point p = board.getPoint(c);
-		
-		boolean debug = false;
-		if (c.x == 5 && c.y == 4 && playerId == 1)
-			debug = true;
-		//debug = false;
 		
 		if (p.value == value) {
 			MoveSequence moveSequence = new MoveSequence(board, pair);
@@ -95,21 +92,12 @@ public class MoveSequenceAnalysis {
 		} else if (p.value == 0 || p.value > value) {
 			return null;								// Impossible to get p to have value
 		} else {
-			if (debug)
-				System.out.printf("Trying to make %s have value %d from %d\n", c, value, board.getPoint(c).value);
-			
 			ArrayList<MoveSequence> moveSequences = new ArrayList<MoveSequence>();
 			int currentValue = p.value;
 			
-			while (currentValue < value) {
-				if (debug)
-					System.out.printf("  STEP: make %s double its current value %d\n", c, currentValue);
-	
+			while (currentValue < value) {	
 				if (moveSequences.isEmpty()) {
-					if (debug)
-						System.out.printf("  Existing moveSequences was empty\n", c, currentValue);
-					
-					ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(board, c, pair, playerId);
+					ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(board, c, pair, playerId, depth);
 					
 					if (moveSequencesToDoubleValue != null) {
 						for (MoveSequence moveSequenceToDoubleValue : moveSequencesToDoubleValue)
@@ -117,21 +105,15 @@ public class MoveSequenceAnalysis {
 						
 						currentValue *= 2;
 					} else {
-						if (debug)
-							System.out.printf("  BREAK: returning null\n");
-						
 						return null;
 					}
 				} else {
-					if (debug)
-						System.out.printf("  Existing moveSequences was not empty\n", c, currentValue);
-					
 					boolean canDoubleValue = false;
 					
 					ArrayList<MoveSequence> newMoveSequences = new ArrayList<MoveSequence>();
 					
 					for (MoveSequence moveSequence : moveSequences) {
-						ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(moveSequence.board, c, pair, playerId);
+						ArrayList<MoveSequence> moveSequencesToDoubleValue = movesToDoubleValue(moveSequence.board, c, pair, playerId, depth);
 						
 						if (moveSequencesToDoubleValue != null) {
 							canDoubleValue = true;
@@ -156,15 +138,7 @@ public class MoveSequenceAnalysis {
 					} else {
 						return null;
 					}
-				}
-				
-				
-				if (debug) {
-					System.out.printf("  END OF STEP:\n");
-					for (MoveSequence moveSequence : moveSequences) {
-						System.out.printf("    %d   %s\n", currentValue, moveSequence);
-					}
-				}
+				}				
 			}
 			
 			return moveSequences;
@@ -173,10 +147,10 @@ public class MoveSequenceAnalysis {
 	
 	// Returns an array of all move sequences such that the value of the point at the given coordinate is doubled, i.e., one combination
 	// Includes the combination move itself as the last move in each list, with the given point receiving the coins.  (Of course, this final move can be reversed if desired)
-	private ArrayList<MoveSequence> movesToDoubleValue(Board board, Coord c, Pair pair, int playerId) {
+	private ArrayList<MoveSequence> movesToDoubleValue(Board board, Coord c, Pair pair, int playerId, int depth) {
 		Point p = board.getPoint(c);
 		
-		if (p.value == 0)
+		if (p.value == 0 || depth > MAX_DEPTH)
 			return null;			// Cannot increase the value if it is already zero
 		
 		ArrayList<MoveSequence> moveSequences = new ArrayList<MoveSequence>();
@@ -184,7 +158,7 @@ public class MoveSequenceAnalysis {
 		ArrayList<Coord> neighbors = board.neighborsOf(c, pair);
 		
 		for (Coord n : neighbors) {
-			ArrayList<MoveSequence> moveSequencesToMakeValue = movesToMakeValue(board, n, p.value, pair, playerId);
+			ArrayList<MoveSequence> moveSequencesToMakeValue = movesToMakeValue(board, n, p.value, pair, playerId, depth + 1);
 			
 			if (moveSequencesToMakeValue != null) {
 				for (MoveSequence moveSequenceToMakeValue : moveSequencesToMakeValue) {
