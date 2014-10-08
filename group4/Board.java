@@ -153,8 +153,8 @@ public class Board {
 	public boolean isMoveValid(int x1, int y1, int x2, int y2, Pair pr) {
 		return (isInBounds(x1, y1) && isInBounds(x2, y2) && 
 				((Math.abs(x1 - x2) == pr.p && Math.abs(y1 - y2) == pr.q) || (Math.abs(x1 - x2) == pr.q && Math.abs(y1 - y2) == pr.p)) &&
-				getPoint(x1, y1).value == getPoint(x2, y2).value &&
-				getPoint(x1, y1).value > 0);
+				values[x1*size + y1] == values[x2*size + y2] &&
+				values[x1*size + y1] > 0);
 	}
 	
 	public boolean isMoveValid(Coord src, Coord target, Pair pr) {
