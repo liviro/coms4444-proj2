@@ -22,13 +22,7 @@ public class Board {
 		owners = new int[size*size];
 		values = new int[size*size];
 		
-		for (int i = 0; i < grid.length; i++) {
-			this.owners[i] = grid[i].owner;
-			this.values[i] = grid[i].value;
-			
-			if (grid[i].owner >= 0)
-				this.scores[grid[i].owner] += grid[i].value;
-		}
+		this.updateGrid(grid);
 	}
 	
 	Board(Board board) {
@@ -44,6 +38,19 @@ public class Board {
 	
 	
 	// PUBLIC METHODS
+	public void updateGrid(Point grid[]) {
+		scores[0] = 0;
+		scores[1] = 0;
+		
+		for (int i = 0; i < grid.length; i++) {
+			this.owners[i] = grid[i].owner;
+			this.values[i] = grid[i].value;
+			
+			if (grid[i].owner >= 0)
+				this.scores[grid[i].owner] += grid[i].value;
+		}	
+	}
+	
 	// Updates the grid based on a move performed by a player
 	// Assumes that the move is valid
 	public void processMove(int xSrc, int ySrc, int xTarget, int yTarget, int playerId) {

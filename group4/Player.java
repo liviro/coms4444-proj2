@@ -115,11 +115,12 @@ public class Player extends offset.sim.Player {
 				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
 			
 			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
-			ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisOpponent.getAllDisruptibleMoveSequences(move, pairSelf);
+			/*ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisOpponent.getAllDisruptibleMoveSequences(move, pairSelf);
 			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
 			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
 				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
+			*/
 			
 			score = 0.33*agg + 0.33*def;
 			
@@ -147,7 +148,7 @@ public class Player extends offset.sim.Player {
 			idOpponent = 1 - id;
 			didSetup = true;
 		} else {
-			// Keep our board up to date by processing the most recent moves made by opponent (probably faster than copying the whole grid again)
+			/*// Keep our board up to date by processing the most recent moves made by opponent (probably faster than copying the whole grid again)
 			// An element in the history ArrayList is itself an ArrayList where the first element is the player id and the second is a movePair (each of which must be cast)
 			int i = history.size() - 1;
 			while (i >= 0 && (int) history.get(i).get(0) != id) {
@@ -157,7 +158,8 @@ public class Player extends offset.sim.Player {
 					board.processMove(new Move(mp.src.x, mp.src.y, mp.target.x, mp.target.y, player));
 				
 				i--;
-			}
+			}*/
+			board.updateGrid(grid);
 		}
 		
 		// Call a strategy to actually determine the move to make
