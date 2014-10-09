@@ -20,11 +20,21 @@ public class MoveSequence {
 	}
 	
 	public boolean isDisruptedBy(Board board, Move testMove) {
+		/* Looping through all moves in the sequence was surprisingly slow, so instead we look only at the first
+		 * This in principle is OK too, since we can wait to disrupt an opponent sequence until the last possible
+		 * moment, allowing them to waste moves first
 		for (Move move : this.moves) {
 			if (move.src.equals(testMove.src) || move.src.equals(testMove.target) ||
 				move.target.equals(testMove.src) || move.target.equals(testMove.target))
 				return true;
 		}
+		*/
+		
+		Move firstMove = this.moves.get(0);
+
+		if (firstMove.src.equals(testMove.src) || firstMove.src.equals(testMove.target) ||
+				firstMove.target.equals(testMove.src) || firstMove.target.equals(testMove.target))
+				return true;
 		
 		return false;
 	}
