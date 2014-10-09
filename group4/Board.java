@@ -133,8 +133,23 @@ public class Board {
 		return validMovesFrom(c.x, c.y, pr);
 	}
 	
-	public ArrayList<Move> validMoves(Pair pr, int playerId)
-	{
+	public int numValidMovesFrom(int x, int y, Pair pr) {
+		ArrayList<Coord> neighbors = neighborsOf(x, y, pr);
+		int num = 0;
+		
+		for (Coord c : neighbors) {
+			if (isMoveValid(c.x, c.y, x, y, pr))
+				num++;
+		}
+		
+		return num;
+	}
+
+	public int numValidMovesFrom(Coord c, Pair pr) {
+		return numValidMovesFrom(c.x, c.y, pr);
+	}
+	
+	public ArrayList<Move> validMoves(Pair pr, int playerId) {
 		ArrayList<Move> validMoves = new ArrayList<Move>();
 		
 		for (int x = 0; x < size; x++) {
@@ -147,6 +162,18 @@ public class Board {
 		}
 		
 		return validMoves;
+	}
+	
+	public int numValidMoves(Pair pr, int playerId) {
+		int num = 0;
+		
+		for (int x = 0; x < size; x++) {
+			for (int y = 0; y < size; y++) {
+				num += numValidMovesFrom(x, y, pr);
+			}
+		}
+		
+		return num;
 	}
 	
 	public boolean isInBounds(int x, int y) {
