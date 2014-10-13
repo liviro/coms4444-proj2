@@ -120,7 +120,7 @@ public class Player extends offset.sim.Player {
 			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
 			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
-				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size();
+				def = ((double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size()) / ((double) analysisOpponent.getMoveSequencesByEnd(moveSequenceOpponentWithMaxCoinSwingPerMove.lastMove()).size());
 			
 			// Flexibility: Determine net # move impact to us and our opponent
 			int deltaMovesSelf = board.numMovesDelta(move, pairSelf, id);
@@ -128,7 +128,7 @@ public class Player extends offset.sim.Player {
 			
 			flex = (double) (-deltaMovesOpponent - -deltaMovesSelf);
 			
-			score = 1*(agg + def) + 0.00*flex;
+			score = 1.00*agg + 0.00*def + 0.05*flex;
 			
 			if (score > bestMoveScore) {
 				bestMove = move;

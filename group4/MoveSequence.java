@@ -19,10 +19,21 @@ public class MoveSequence {
 		this.pair = new Pair(pair);
 	}
 	
+	public Move firstMove() {
+		return moves.get(0);
+	}
+	
+	public Move lastMove() {
+		return moves.get(moves.size() - 1);
+	}
+	
 	public boolean isDisruptedBy(Board board, Move testMove) {
 		/* Looping through all moves in the sequence was surprisingly slow, so instead we look only at the first
 		 * This in principle is OK too, since we can wait to disrupt an opponent sequence until the last possible
 		 * moment, allowing them to waste moves first
+		 * When looking at the first, it is *not* a disruption if both the test move and the first move in the sequence
+		 *   have the same target, because then the test move *helps* the sequence (accomplishes the same objective
+		 *   as the first move in the sequence)
 		for (Move move : this.moves) {
 			if (move.src.equals(testMove.src) || move.src.equals(testMove.target) ||
 				move.target.equals(testMove.src) || move.target.equals(testMove.target))
@@ -32,8 +43,7 @@ public class MoveSequence {
 		
 		Move firstMove = this.moves.get(0);
 
-		if (firstMove.src.equals(testMove.src) || firstMove.src.equals(testMove.target) ||
-				firstMove.target.equals(testMove.src) || firstMove.target.equals(testMove.target))
+		if (firstMove.src.equals(testMove.src) || firstMove.src.equals(testMove.target) || firstMove.target.equals(testMove.src))
 				return true;
 		
 		return false;

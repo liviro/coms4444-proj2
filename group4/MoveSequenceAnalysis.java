@@ -17,11 +17,13 @@ public class MoveSequenceAnalysis {
 
 	private ArrayList<MoveSequence> allMoveSequences;
 	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByStart;
+	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByEnd;
 	
 	public MoveSequenceAnalysis(Board board) {
 		this.board = new Board(board);
 		this.allMoveSequences = new ArrayList<MoveSequence>();
 		this.moveSequencesByStart = new HashMap<String, ArrayList<MoveSequence>>();
+		this.moveSequencesByEnd = new HashMap<String, ArrayList<MoveSequence>>();
 	}
 	
 	// Generate all of the sequences that double each cell's value, and store them
@@ -35,6 +37,7 @@ public class MoveSequenceAnalysis {
 						moveSequence.coinSwing = (moveSequence.board.scores[playerId] - board.scores[playerId]) - (moveSequence.board.scores[1-playerId] - board.scores[1-playerId]);
 						
 						Move firstMove = moveSequence.moves.get(0);
+						Move lastMove = moveSequence.moves.get(moveSequence.moves.size() - 1);
 
 						ArrayList<MoveSequence> moveSequencesStartingAt = moveSequencesByStart.get(firstMove.toString());
 						if (moveSequencesStartingAt == null)
@@ -43,6 +46,13 @@ public class MoveSequenceAnalysis {
 						moveSequencesStartingAt.add(moveSequence);
 						moveSequencesByStart.put(firstMove.toString(), moveSequencesStartingAt);
 						
+						ArrayList<MoveSequence> moveSequencesEndingAt = moveSequencesByEnd.get(lastMove.toString());
+						if (moveSequencesEndingAt == null)
+							moveSequencesEndingAt = new ArrayList<MoveSequence>();
+						
+						moveSequencesEndingAt.add(moveSequence);
+						moveSequencesByEnd.put(lastMove.toString(), moveSequencesEndingAt);
+
 						allMoveSequences.add(moveSequence);
 					}
 				}
@@ -67,6 +77,10 @@ public class MoveSequenceAnalysis {
 	
 	public ArrayList<MoveSequence> getMoveSequencesByStart(Move move) {
 		return moveSequencesByStart.get(move.toString());
+	}
+	
+	public ArrayList<MoveSequence> getMoveSequencesByEnd(Move move) {
+		return moveSequencesByEnd.get(move.toString());
 	}
 	
 	public ArrayList<MoveSequence> getNonDisruptibleMoveSequencesByStart(Move move, Pair pairOpponent) {
