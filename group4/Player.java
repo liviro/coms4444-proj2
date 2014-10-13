@@ -97,9 +97,6 @@ public class Player extends offset.sim.Player {
 		if (validMoves.isEmpty())
 			return null;
 		
-		int numMovesSelfCurrent = validMoves.size();
-		int numMovesOpponentCurrent = board.numValidMoves(pairOpponent, idOpponent);
-		
 		// From among the possible valid moves, choose the one with the highest value according to our valuation methodology
 		Move bestMove = null;
 		double bestMoveScore = 0;
@@ -116,22 +113,20 @@ public class Player extends offset.sim.Player {
 			MoveSequence moveSequenceWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesByStartSelf);
 			
 			if (moveSequenceWithMaxCoinSwingPerMove != null)
-				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing / moveSequenceWithMaxCoinSwingPerMove.moves.size());
+				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceWithMaxCoinSwingPerMove.moves.size();
 			
 			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
 			ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisOpponent.getAllDisruptibleMoveSequences(move, pairSelf);
 			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
 			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
-				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing / moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size());
+				def = (double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size();
 			
 			// Flexibility: Determine net # move impact to us and our opponent
-			Board newBoard = new Board(board);
-			newBoard.processMove(move);
-			int numMovesSelfAfter = newBoard.numValidMoves(pairSelf, id);
-			int numMovesOpponentAfter = newBoard.numValidMoves(pairOpponent, idOpponent);
+			int deltaMovesSelf = board.numMovesDelta(move, pairSelf, id);
+			int deltaMovesOpponent = board.numMovesDelta(move, pairOpponent, idOpponent);
 			
-			flex = (numMovesOpponentCurrent - numMovesOpponentAfter) - (numMovesSelfCurrent - numMovesSelfAfter);
+			flex = (double) (-deltaMovesOpponent - -deltaMovesSelf);
 			
 			score = 1*(agg + def) + 0.00*flex;
 			

@@ -176,6 +176,37 @@ public class Board {
 		return num;
 	}
 	
+	public int numMovesDelta(Move move, Pair pr, int playerId) {
+		int delta = 0;
+		ArrayList<Coord> neighbors;
+		
+		// For each neighbor of src, we lose two moves (both directions) if the move was valid
+		neighbors = neighborsOf(move.src, pr);
+		for (Coord c : neighbors)
+			if (isMoveValid(c, move.src, pr))
+				delta -= 2;
+		
+		// For each neighbor of target we lose two moves (both directions) if the move was valid before
+		neighbors = neighborsOf(move.target, pr);
+		for (Coord c : neighbors)
+			if (isMoveValid(c, move.target, pr))
+				delta -= 2;
+		
+		// If the move was made by us, we have double counted the reduction in moves between src and target, so add it back
+		if (playerId == move.playerId)
+			delta += 2;
+		
+		// For each neighbor of target we gain two moves (both directions) if the move is valid now
+		Board newBoard = new Board(this);
+		newBoard.processMove(move);
+		neighbors = newBoard.neighborsOf(move.target, pr);
+		for (Coord c : neighbors)
+			if (newBoard.isMoveValid(c, move.target, pr))
+				delta += 2;
+		
+		return delta;
+	}
+	
 	public boolean isInBounds(int x, int y) {
 		return (x >= 0 && x < this.size && y >= 0 && y < this.size);
 	}
