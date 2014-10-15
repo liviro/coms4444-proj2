@@ -75,9 +75,9 @@ public class Player extends offset.sim.Player {
 		double maxCoinSwingPerMove = 0;
 		
 		for (MoveSequence moveSequence : moveSequences) {
-			if (moveSequence.coinSwing / moveSequence.moves.size() > maxCoinSwingPerMove) {
+			if (moveSequence.normalizedCoinSwing / moveSequence.moves.size() > maxCoinSwingPerMove) {
 				bestMoveSequence = moveSequence;
-				maxCoinSwingPerMove = moveSequence.coinSwing / moveSequence.moves.size();
+				maxCoinSwingPerMove = moveSequence.normalizedCoinSwing / moveSequence.moves.size();
 			}
 		}
 		
@@ -88,8 +88,8 @@ public class Player extends offset.sim.Player {
 		MoveSequenceAnalysis analysisSelf = new MoveSequenceAnalysis(board);
 		MoveSequenceAnalysis analysisOpponent = new MoveSequenceAnalysis(board);
 		
-		analysisSelf.analyze(id, pairSelf);
-		analysisOpponent.analyze(idOpponent, pairOpponent);
+		analysisSelf.analyze(id, pairSelf, pairOpponent);
+		analysisOpponent.analyze(idOpponent, pairOpponent, pairSelf);
 
 		// Generate all possible valid moves
 		ArrayList<Move> validMoves = board.validMoves(pairSelf, id);
@@ -100,6 +100,9 @@ public class Player extends offset.sim.Player {
 		// From among the possible valid moves, choose the one with the highest value according to our valuation methodology
 		Move bestMove = null;
 		double bestMoveScore = 0;
+		double bestMoveAgg = 0;
+		double bestMoveDef = 0;
+		double bestMoveFlex = 0;
 		
 		for (Move move : validMoves) {
 			// Weighted 'score' of the move in terms of its aggressiveness, defensiveness, and flexibility effects
@@ -113,14 +116,14 @@ public class Player extends offset.sim.Player {
 			MoveSequence moveSequenceWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesByStartSelf);
 			
 			if (moveSequenceWithMaxCoinSwingPerMove != null)
-				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceWithMaxCoinSwingPerMove.moves.size();
+				agg = (double) (moveSequenceWithMaxCoinSwingPerMove.normalizedCoinSwing) / (double) moveSequenceWithMaxCoinSwingPerMove.moves.size();
 			
 			// Defensiveness: Determine the opponent move sequence that this move disrupts with the highest ratio of coin swing / # moves
 			ArrayList<MoveSequence> moveSequencesOpponentDisruptible = analysisOpponent.getAllDisruptibleMoveSequences(move, pairSelf);
 			MoveSequence moveSequenceOpponentWithMaxCoinSwingPerMove = getMoveSequenceWithMaxCoinSwingPerMove(moveSequencesOpponentDisruptible);
 			
 			if (moveSequenceOpponentWithMaxCoinSwingPerMove != null)
-				def = ((double) (moveSequenceOpponentWithMaxCoinSwingPerMove.coinSwing) / (double) moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size()) / ((double) analysisOpponent.getMoveSequencesByEnd(moveSequenceOpponentWithMaxCoinSwingPerMove.lastMove()).size());
+				def = ((double) (moveSequenceOpponentWithMaxCoinSwingPerMove.normalizedCoinSwing) / (double) moveSequenceOpponentWithMaxCoinSwingPerMove.moves.size()) / ((double) analysisOpponent.getMoveSequencesByLastMoveTarget(moveSequenceOpponentWithMaxCoinSwingPerMove.lastMove()).size());
 			
 			// Flexibility: Determine net # move impact to us and our opponent
 			int deltaMovesSelf = board.numMovesDelta(move, pairSelf, id);
@@ -128,17 +131,21 @@ public class Player extends offset.sim.Player {
 			
 			flex = (double) (-deltaMovesOpponent - -deltaMovesSelf);
 			
-			score = 1.00*agg + 0.00*def + 0.05*flex;
+			score = 1.00*agg + 1.00*def + 0.00*flex;
 			
 			if (score > bestMoveScore) {
 				bestMove = move;
 				bestMoveScore = score;
+				bestMoveAgg = agg;
+				bestMoveDef = def;
+				bestMoveFlex = flex;
 			}
 		}
 		
 		if (bestMove == null) {
 			return randomStrategy();
 		} else {
+			System.out.printf("Move has score: %f (%f %f %f)\n", bestMoveScore, bestMoveAgg, bestMoveDef, bestMoveFlex);
 			return bestMove;
 		}
 	}

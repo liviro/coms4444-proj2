@@ -16,42 +16,43 @@ public class MoveSequenceAnalysis {
 	private Board board;
 
 	private ArrayList<MoveSequence> allMoveSequences;
-	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByStart;
-	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByEnd;
+	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByFirstMove;
+	private HashMap<String, ArrayList<MoveSequence>> moveSequencesByLastMoveTarget;
 	
 	public MoveSequenceAnalysis(Board board) {
 		this.board = new Board(board);
 		this.allMoveSequences = new ArrayList<MoveSequence>();
-		this.moveSequencesByStart = new HashMap<String, ArrayList<MoveSequence>>();
-		this.moveSequencesByEnd = new HashMap<String, ArrayList<MoveSequence>>();
+		this.moveSequencesByFirstMove = new HashMap<String, ArrayList<MoveSequence>>();
+		this.moveSequencesByLastMoveTarget = new HashMap<String, ArrayList<MoveSequence>>();
 	}
 	
 	// Generate all of the sequences that double each cell's value, and store them
-	public void analyze(int playerId, Pair pr) {
+	public void analyze(int playerId, Pair pairPlayer, Pair pairOpponent) {
 		for (int x = 0; x < board.size; x++) {
 			for (int y = 0; y < board.size; y++) {
-				ArrayList<MoveSequence> moveSequences = movesToDoubleValue(board, new Coord(x,y), pr, playerId, 0);
+				ArrayList<MoveSequence> moveSequences = movesToDoubleValue(board, new Coord(x,y), pairPlayer, playerId, 0);
 				
 				if (moveSequences != null) {
 					for (MoveSequence moveSequence : moveSequences) {
 						moveSequence.coinSwing = (moveSequence.board.scores[playerId] - board.scores[playerId]) - (moveSequence.board.scores[1-playerId] - board.scores[1-playerId]);
+						moveSequence.normalizedCoinSwing = calcNormalizedCoinSwing(moveSequence, pairPlayer, pairOpponent);
 						
 						Move firstMove = moveSequence.moves.get(0);
 						Move lastMove = moveSequence.moves.get(moveSequence.moves.size() - 1);
 
-						ArrayList<MoveSequence> moveSequencesStartingAt = moveSequencesByStart.get(firstMove.toString());
-						if (moveSequencesStartingAt == null)
-							moveSequencesStartingAt = new ArrayList<MoveSequence>();
+						ArrayList<MoveSequence> moveSequencesStartingWith = moveSequencesByFirstMove.get(firstMove.toString());
+						if (moveSequencesStartingWith == null)
+							moveSequencesStartingWith = new ArrayList<MoveSequence>();
 						
-						moveSequencesStartingAt.add(moveSequence);
-						moveSequencesByStart.put(firstMove.toString(), moveSequencesStartingAt);
+						moveSequencesStartingWith.add(moveSequence);
+						moveSequencesByFirstMove.put(firstMove.toString(), moveSequencesStartingWith);
 						
-						ArrayList<MoveSequence> moveSequencesEndingAt = moveSequencesByEnd.get(lastMove.toString());
+						ArrayList<MoveSequence> moveSequencesEndingAt = moveSequencesByLastMoveTarget.get(lastMove.target.toString());
 						if (moveSequencesEndingAt == null)
 							moveSequencesEndingAt = new ArrayList<MoveSequence>();
 						
 						moveSequencesEndingAt.add(moveSequence);
-						moveSequencesByEnd.put(lastMove.toString(), moveSequencesEndingAt);
+						moveSequencesByLastMoveTarget.put(lastMove.target.toString(), moveSequencesEndingAt);
 
 						allMoveSequences.add(moveSequence);
 					}
@@ -75,16 +76,16 @@ public class MoveSequenceAnalysis {
 		return moveSequencesFiltered;
 	}
 	
-	public ArrayList<MoveSequence> getMoveSequencesByStart(Move move) {
-		return moveSequencesByStart.get(move.toString());
+	public ArrayList<MoveSequence> getMoveSequencesByFirstMove(Move move) {
+		return moveSequencesByFirstMove.get(move.toString());
 	}
 	
-	public ArrayList<MoveSequence> getMoveSequencesByEnd(Move move) {
-		return moveSequencesByEnd.get(move.toString());
+	public ArrayList<MoveSequence> getMoveSequencesByLastMoveTarget(Move move) {
+		return moveSequencesByLastMoveTarget.get(move.target.toString());
 	}
 	
 	public ArrayList<MoveSequence> getNonDisruptibleMoveSequencesByStart(Move move, Pair pairOpponent) {
-		ArrayList<MoveSequence> moveSequences = getMoveSequencesByStart(move);
+		ArrayList<MoveSequence> moveSequences = getMoveSequencesByFirstMove(move);
 		ArrayList<MoveSequence> nonDisruptibleMoveSequences = new ArrayList<MoveSequence>();
 		
 		for (MoveSequence moveSequence : moveSequences)
@@ -92,6 +93,34 @@ public class MoveSequenceAnalysis {
 				nonDisruptibleMoveSequences.add(moveSequence);
 		
 		return nonDisruptibleMoveSequences;
+	}
+	
+	// Normalizes the coin swing of a sequence by adjusting for nearby neighbors
+	private double calcNormalizedCoinSwing(MoveSequence moveSequence, Pair pairPlayer, Pair pairOpponent) {
+		Coord c = moveSequence.lastMove().target;
+		ArrayList<Coord> neighborsOpponent;
+		double p = 1;
+		
+		neighborsOpponent = moveSequence.board.neighborsOf(c, pairOpponent);
+
+		// If a neighbor at opponent's offset has equal value, the value is zero because they could capture it immediately
+		for (Coord n : neighborsOpponent)
+			if (moveSequence.board.getValue(n) == moveSequence.board.getValue(c))
+				return 0;
+
+		// Otherwise, calculate a "probability" that we can hold onto the square
+		// For each non-zero neighbor at my opponent's offset, calculate a "probability" effect that we can't keep it, which is smaller the more distant the value is
+		for (Coord n : neighborsOpponent) {
+			int nValue = moveSequence.board.getValue(n);
+			int cValue = moveSequence.board.getValue(c);
+			if (nValue < cValue && nValue > 0) {
+				p *= 1.0 - ((1.0 / ((double) cValue / (double) nValue)) / neighborsOpponent.size());
+			}
+		}
+		
+		p = p > 1 ? 1 : p;
+		
+		return ((double) moveSequence.coinSwing) * p;
 	}
 	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value

@@ -92,6 +92,22 @@ public class Board {
 		return getPoint(c.x, c.y);
 	}
 	
+	public int getValue(int x, int y) {
+		return values[x*size + y];
+	}
+	
+	public int getValue(Coord c) {
+		return getValue(c.x, c.y);
+	}
+	
+	public int getOwner(int x, int y) {
+		return owners[x*size + y];
+	}
+	
+	public int getOwner(Coord c) {
+		return getOwner(c.x, c.y);
+	}
+	
 	// Given a point and an offset pair, returns an ArrayList of neighbors of that point that are on the board
 	public ArrayList<Coord> neighborsOf(int x, int y, Pair pr) {
 		ArrayList<Coord> neighbors = new ArrayList<Coord>();

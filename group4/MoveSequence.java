@@ -11,6 +11,7 @@ public class MoveSequence {
 	public ArrayList<Move> moves;		// The list of moves in the sequence
 	public Pair pair;					// The pair used to generate the moves
 	public int coinSwing;				// The change in coins resulting from the sequence
+	public double normalizedCoinSwing;	// The change in coins resulting from the sequence, adjusted for the likelihood of keeping them
 	public Board board;					// The board that *results* from playing the moves in the sequence
 		
 	public MoveSequence(Board board, Pair pair) {
