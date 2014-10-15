@@ -120,7 +120,8 @@ public class MoveSequenceAnalysis {
 		
 		p = p > 1 ? 1 : p;
 		
-		return ((double) moveSequence.coinSwing) * p;
+		return ((double) moveSequence.coinSwing) - (moveSequence.board.getValue(c) * (1-p));
+		//return ((double) moveSequence.coinSwing) * p;
 	}
 	
 	// Returns all sequences of moves such that, after the moves, the point at coordinate c has value value

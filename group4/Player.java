@@ -99,7 +99,7 @@ public class Player extends offset.sim.Player {
 		
 		// From among the possible valid moves, choose the one with the highest value according to our valuation methodology
 		Move bestMove = null;
-		double bestMoveScore = 0;
+		double bestMoveScore = -Double.MAX_VALUE;
 		double bestMoveAgg = 0;
 		double bestMoveDef = 0;
 		double bestMoveFlex = 0;
@@ -131,7 +131,7 @@ public class Player extends offset.sim.Player {
 			
 			flex = (double) (-deltaMovesOpponent - -deltaMovesSelf);
 			
-			score = 1.00*agg + 1.00*def + 0.00*flex;
+			score = 1.00*agg + 0.00*def + 0.20*flex;
 			
 			if (score > bestMoveScore) {
 				bestMove = move;
